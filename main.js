@@ -3,7 +3,7 @@ $(document).ready(function(){
 
   $('select').on('change', function () {
   event.preventDefault();
-  var selection = document.getElementById('dropdownOption').value;
+  var selection = document.getElementById('dropdownOption').value; // replaced this with getElementById
   console.log(selection);
 
   var url = 'https://api.nytimes.com/svc/topstories/v2/' + selection + '.json'; // you already have var 'selection', so just input it here
@@ -16,10 +16,17 @@ $(document).ready(function(){
 
     .done(function(data) {
       console.log(data); // check the data
+      var i = 0;
+      $.each(data.results, function(key, value) {
+        if (value.multimedia.length && i < 12) {
+          console.log(value.multimedia);
+          i++;
+        }
+      });
 
-      if (data.results.length === 0) {
-          $('.results').append('<p>Sorry,  please try again.</p>');
-      } 
+      // if (data.results.length === 0) {
+      //     $('.results').append('<p>Sorry,  please try again.</p>');
+      // } 
       
       // else {
       //     var nytData = data.results.filter(function (item) {
@@ -43,6 +50,7 @@ $(document).ready(function(){
       //                 };
       //             });
       //         };
+
     });
 
   });
