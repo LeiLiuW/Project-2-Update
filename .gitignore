@@ -1,6 +1,9 @@
 # Ignore system files
 .DS_Store
 .DS_Store?
+.jscsrc
+.jshintrc
+
 ._*
 .Spotlight-V100
 .Trashes

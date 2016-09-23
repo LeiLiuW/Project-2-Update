@@ -1,82 +1,56 @@
+
+
 var gulp = require('gulp');
 var uglify = require('gulp-uglify');
-var rename = require('gulp-rename');
+var sass = require('gulp-sass');
 var browserSync = require('browser-sync').create();
 var plumber = require('gulp-plumber');
-const eslint = require('gulp-eslint')
-var sass = require('gulp-sass'),
-    autoprefixer = require('gulp-autoprefixer'),
-    cssnano = require('gulp-cssnano'),
-    rename = require('gulp-rename');
+var autoprefix = require('gulp-autoprefixer');
+var babel = require('gulp-babel');
 
-
-
-//gulp.task('sayHello',function(){
-//console.log('hello world');
-//});
-
-
-//watch
-
- gulp.task('compress', function(){
-     gulp.src(['js/*.js','lib/*.js'])
-       .pipe(eslint())
-       .pipe(uglify())
-       .pipe(rename({extname:'.min.js'}))
-       .pipe(gulp.dest('build/js'))
- });
-
-gulp.task('watch', function(){
-gulp.watch('./js/*.js',['compress'])
-})
-gulp.task('default',['watch','compress'])
-
-//plumber
-gulp.src('./src/*.ext')
-    .pipe(plumber())
-
-    .pipe(gulp.dest('./dist'));
-
-
-// browser-sync
-gulp.task('browser-sync', function() {
-    browserSync.init({
-        server: {
-            baseDir: "./"
-        }
-    });
-});
-
+gulp.task('default', ['es2015', 'css', 'browser-sync']);
 
 gulp.task('browser-sync', function() {
-    browserSync.init({
-        proxy: "yourlocal.dev"
-    });
+
+
+    // watch tasks
+    gulp.watch('./src/**/*.js', ['es2015']);
+    gulp.watch('./src/**/*.scss', ['css']);
+    gulp.watch(['./build/**/*.*', 'index.html']);
 });
 
-//plumber
+gulp.task('es2015', function() {
+  return gulp.src('./src/**/*.js')
+        .pipe(babel({
+            presets: ['es2015']
+        }))
+        .pipe(gulp.dest('./build'));
+});
 
+gulp.task('uglify', function() {
 
-gulp.src('./src/*.ext')
-    .pipe(plumber())
-    .pipe(gulp.dest('./dist'));
+  return gulp.src(['./src/*.js']) // What files do we want gulp to consume?
+              .pipe(plumber(function () {
+                console.log("there was an error in uglify");
+                this.emit('end');
+              }))
+              .pipe(uglify()) // Call the uglify function on these files
+              .pipe(gulp.dest('./build')); // Where do we put the result?
+});
 
-var style =['./sass/*.scss', './sass/**/*.scss']
-var styleOut ='./build/css'
-// sass
 gulp.task('sass', function() {
-   gulp.src(style)
-      .pipe(sass())
-      .pipe(autoprefixer({
-         browsers: ['last 2 versions']
-      }))
-      .pipe(gulp.dest(styleOut))
-      .pipe(cssnano())
-      .pipe(rename('style.min.css'))
-      .pipe(gulp.dest(styleOut));
+  return gulp.src('./src/**/*.scss')
+              .pipe(sass().on('error', sass.logError))
+              .pipe(gulp.dest('./build'));
 });
 
-gulp.task('sass:watch', function () {
-  gulp.watch(style, ['sass']);
+
+gulp.task('css', function () {
+  return gulp.src('./src/**/*.scss')
+              .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
+              .pipe(autoprefix({
+			            browsers: ['last 2 versions'],
+                	cascade: false
+		            }))
+              .pipe(gulp.dest('./build'));
 });
-gulp.task('default',['watch', 'sass'])
